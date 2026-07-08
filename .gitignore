@@ -1,0 +1,26 @@
+/build/
+/dist/
+/*.egg-info/
+.idea/
+.tox/
+htmlcov/
+node_modules/
+
+*.log
+*.tmp
+*.bak
+*.old
+__pycache__
+.coverage
+/coverage.xml
+alliance_auth.sqlite3
+
+# Devenv
+.devenv*
+devenv.local.nix
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml
