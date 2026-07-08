@@ -1,5 +1,5 @@
-appname = georgeforge
-package = georgeforge
+appname = gf_conman
+package = gf_conman
 
 help:
 	@echo "Makefile for $(appname)"

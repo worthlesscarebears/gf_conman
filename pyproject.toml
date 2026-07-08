@@ -5,7 +5,7 @@ requires = [
 ]
 
 [project]
-name = "allianceauth-georgeforge"
+name = "allianceauth-gf-conman"
 description = ""
 readme = "README.md"
 keywords = [
@@ -36,16 +36,9 @@ dependencies = [
     "allianceauth<6,>=5",
     "allianceauth-corptools>=2.5.5",
     "allianceauth-invoices>=0.1.7",
+    "allianceauth-georgeforge>=0.6.3",
+    "py-cord<3,>=2",
     "django-eveonline-sde>=0.0.1a1,<1",
-]
-
-[project.optional-dependencies]
-discord = [
-    "py-cord<3,>=2",
-    "allianceauth-discordbot<6,>=5",
-]
-webhook = [
-    "py-cord<3,>=2",
 ]
 
 dev = [
@@ -53,7 +46,7 @@ dev = [
 ]
 
 [tool.hatch.version]
-path = "georgeforge/__init__.py"
+path = "gf_conman/__init__.py"
 
 [tool.hatch.build]
-include = [ "/georgeforge" ]
+include = [ "/gf_conman" ]
