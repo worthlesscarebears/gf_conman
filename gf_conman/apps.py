@@ -4,12 +4,12 @@
 from django.apps import AppConfig
 
 # AA Example App
-from gf-conman import __version__
+from gf_conman import __version__
 
 
 class ExampleConfig(AppConfig):
     """App Config"""
 
-    name = "example"
-    label = "example"
-    verbose_name = f"Example App v{__version__}"
+    name = "gf_conman"
+    label = "gf_conman"
+    verbose_name = f"GeorgeForge ConMan v{__version__}"
