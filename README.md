@@ -16,7 +16,8 @@ AND all its deps.
 so follow those instructions. Also corptools
 and invoices.
 
+has no ui, all in admin for now
+
 ```bash
 python manage.py migrate
-python manage.py collectstatic --no-input
 ```
