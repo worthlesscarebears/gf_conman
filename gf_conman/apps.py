@@ -10,6 +10,6 @@ from gf_conman import __version__
 class ExampleConfig(AppConfig):
     """App Config"""
 
-    name = "gf_conman"
-    label = "gf_conman"
+    name = "allianceauth-gf-conman"
+    label = "allianceauth-gf-conman"
     verbose_name = f"GeorgeForge ConMan v{__version__}"
