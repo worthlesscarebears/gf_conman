@@ -3,8 +3,8 @@
 # Standard Library
 import json
 import logging
-from datetime import timedelta
 import time
+from datetime import timedelta
 
 # Third Party
 import requests
@@ -14,10 +14,16 @@ from discord import Color, Embed
 from celery import shared_task
 from django.utils import timezone
 
+# Alliance Auth
+from allianceauth.framework.api.evecharacter import get_user_from_evecharacter, get_sentinel_user
+from allianceauth.eveonline.models import EveCharacter
+
 # Alliance Auth (External Libs)
-from corptools.models.contracts import Contract
+from corptools.models.contracts import Contract, ContractItem
 
 # George Forge + Modules
+from georgeforge import models as forge_models
+from georgeforge import tasks as forge_tasks
 from gf_conman.models import ContractFilter, MonitoredContract
 
 logger = logging.getLogger(__name__)
@@ -65,6 +71,50 @@ def check_monitored_contracts() -> None:
             entry.last_status = current_status
 
             if current_status in TERMINAL_STATUSES:
+                if entry.triggered_filter.gf_integration:
+                    sale_items = []
+                    for i in forge_models.ForSale.objects.all().order_by("-price"):
+                        sale_items.append(i.eve_type)
+                    detected_item = None
+                    for x in ContractItem.objects.filter(contract=entry.contract):
+                        for i in sale_items:
+                            if i == x.type_name:
+                                detected_item = x.type_name
+                                detected_quantity = x.quantity
+                                break
+
+                        if not detected_item:
+                            logger.warning(f"Contract {entry.contract.contract_id} completed, but no matching ForSale item found for type {x.type_name.name}.")
+                            send_update_to_webhook.delay(
+                                webhook=entry.triggered_filter.webhook.url,
+                                content=f"Contract {entry.contract.contract_id} completed, but no matching ForSale item found for type {x.type_name.name}.",
+                            )
+                            continue
+
+                    detected_user = get_user_from_evecharacter(EveCharacter.objects.get(character_id=entry.contract.acceptor_id))
+                    if detected_user is get_sentinel_user():
+                        logger.warning(f"Contract {entry.contract.contract_id} completed, but acceptor {entry.contract.acceptor_name} is not linked to an Alliance Auth user.")
+                        send_update_to_webhook.delay(
+                            webhook=entry.triggered_filter.webhook.url,
+                            content=f"Contract {entry.contract.contract_id} completed, but acceptor {entry.contract.acceptor_name} is not linked to an Alliance Auth user.",
+                        )
+                        detected_user = get_user_from_evecharacter(EveCharacter.objects.get(character_id=entry.contract.issuer_id))
+
+                    o = forge_models.Order.objects.create(
+                        user=detected_user,
+                        status=forge_models.Order.OrderStatus.DELIVERED,
+                        price=entry.contract.price,
+                        paid=entry.contract.price,
+                        totalcost=entry.contract.price,
+                        deposit=0,
+                        quantity=detected_quantity,
+                        notes=f"Contract {entry.contract.contract_id}",
+                        deliverysystem=forge_models.DeliverySystem.objects.filter(enabled=True).first().system,
+                        cart_session_id="00000000-0000-0000-0000-000000000000",
+                        eve_type=detected_item,
+                    )
+                    forge_tasks.send_order_webhook(o.id)
+                    
                 entry.delete()
                 continue
 

@@ -15,7 +15,7 @@ class ContractFilterAdmin(admin.ModelAdmin):
 @admin.register(MonitoredContract)
 class MonitoredContractAdmin(admin.ModelAdmin):
     """  """
-    list_display = ["contract"]
+    list_display = ["contract", "triggered_filter", "last_status"]
 
 @admin.register(Webhook)
 class WebhookAdmin(admin.ModelAdmin):
