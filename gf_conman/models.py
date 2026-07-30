@@ -6,9 +6,6 @@ Create your models in here
 # Standard Library
 from datetime import timedelta
 
-# Third Party
-from corptools.models.contracts import Contract
-
 # Django
 from django.db import models
 from django.db.models import Q, QuerySet
@@ -19,6 +16,8 @@ from allianceauth.eveonline.models import (
     EveCorporationInfo,
 )
 
+# Alliance Auth (External Libs)
+from corptools.models.contracts import Contract
 
 
 class General(models.Model):
@@ -30,6 +29,29 @@ class General(models.Model):
         managed = False
         default_permissions = ()
         permissions = (("basic_access", "Can access this app"),)
+
+class Webhook(models.Model):
+    """Webhook model for storing webhook URLs"""
+
+    class Meta:
+        default_permissions = ()
+
+    description = models.CharField(
+        "Description",
+        max_length=255,
+        help_text="Description of the webhook",
+    )
+
+    username = models.CharField(
+        "Username",
+        max_length=80,
+        help_text="Username to send the notification as",
+    )
+    
+    url = models.URLField(
+        "Webhook URL",
+        help_text="URL to send the notification to",
+    )
 
 
 class ContractFilter(models.Model):
@@ -43,23 +65,29 @@ class ContractFilter(models.Model):
         max_length=255,
         help_text="Name of the filter",
     )
+
     gf_integration = models.BooleanField(
         "GeorgeForge Integration",
         default=False,
     )
-    webhook_url = models.URLField(
-        "Webhook URL",
-        help_text="URL to send the notification to",
+
+    webhook = models.ForeignKey(
+        Webhook,
+        on_delete=models.SET_NULL,
+        null=True,
     )
-    color = models.CharField(
-        "Embed Color",
-        max_length=7,
-        default="",
+    
+    ping_id = models.BigIntegerField(
+        "Ping ID",
+        null=True,
         blank=True,
-        help_text=(
-            "Optional color for embed on Discord - #000000 / "
-            "black means no color selected."
-        ),
+        help_text="Optional ID to ping on Discord",
+    )
+
+    role_ping = models.BooleanField(
+        "Role Ping",
+        default=False,
+        help_text="Is the Ping ID a role ID",
     )
 
     from_character = models.ForeignKey(
