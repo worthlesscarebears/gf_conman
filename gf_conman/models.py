@@ -53,6 +53,9 @@ class Webhook(models.Model):
         help_text="URL to send the notification to",
     )
 
+    def __str__(self):
+        return self.description
+
 
 class ContractFilter(models.Model):
     """Filters to route contract notifications to the right webhook"""
@@ -133,6 +136,9 @@ class ContractFilter(models.Model):
     def matching_contracts(self, queryset: QuerySet["Contract"]) -> QuerySet["Contract"]:
         """Return the subset of queryset that satisfies this filter, via the DB."""
         return queryset.filter(self.build_query())
+
+    def __str__(self):
+        return self.name
 
 
 class MonitoredContract(models.Model):
