@@ -20,6 +20,8 @@ from allianceauth.eveonline.models import EveCharacter
 
 # Alliance Auth (External Libs)
 from corptools.models.contracts import Contract, ContractItem
+from corptools.tasks.character.wallet import update_char_contracts
+from corptools.tasks.corporation.contracts import corp_contract_update
 
 # George Forge + Modules
 from georgeforge import models as forge_models
@@ -28,6 +30,15 @@ from gf_conman.models import ContractFilter, MonitoredContract
 
 logger = logging.getLogger(__name__)
 TERMINAL_STATUSES = {"finished", "expired", "cancelled", "rejected", "deleted", "reversed"}
+
+@shared_task
+def pull_contracts() -> None:
+    """Scan our filters for chars/corps we want to know about, and pull their contracts from ESI - more often that normal"""
+    for cf in ContractFilter.objects.all():
+        if cf.from_character:
+            update_char_contracts.delay(cf.from_character.character_id)
+        elif cf.from_corporation:
+            corp_contract_update.delay(cf.from_corporation.corporation_id)
 
 @shared_task
 def discover_new_contracts(hours: int = 24) -> None:
@@ -70,7 +81,7 @@ def check_monitored_contracts() -> None:
             send_webhook_notification(entry)
             entry.last_status = current_status
 
-            if current_status in TERMINAL_STATUSES:
+            if current_status in "finished":
                 if entry.triggered_filter.gf_integration:
                     sale_items = []
                     for i in forge_models.ForSale.objects.all().order_by("-price"):
@@ -114,7 +125,7 @@ def check_monitored_contracts() -> None:
                         eve_type=detected_item,
                     )
                     forge_tasks.send_order_webhook(o.id)
-                    
+            if current_status in TERMINAL_STATUSES:        
                 entry.delete()
                 continue
 

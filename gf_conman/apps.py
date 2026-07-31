@@ -7,9 +7,9 @@ from django.apps import AppConfig
 from gf_conman import __version__
 
 
-class ExampleConfig(AppConfig):
+class ConmanConfig(AppConfig):
     """App Config"""
 
-    name = "allianceauth-gf-conman"
-    label = "allianceauth-gf-conman"
+    name = "gf_conman"
+    label = "gf_conman"
     verbose_name = f"GeorgeForge ConMan v{__version__}"
