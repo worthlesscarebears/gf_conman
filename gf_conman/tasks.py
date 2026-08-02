@@ -26,7 +26,7 @@ from corptools.tasks.corporation.contracts import corp_contract_update
 # George Forge + Modules
 from georgeforge import models as forge_models
 from georgeforge import tasks as forge_tasks
-from gf_conman.models import ContractFilter, MonitoredContract
+from gf_conman.models import ContractFilter, MonitoredCharacter, MonitoredContract
 
 logger = logging.getLogger(__name__)
 TERMINAL_STATUSES = {"finished", "expired", "cancelled", "rejected", "deleted", "reversed"}
@@ -38,7 +38,9 @@ def pull_contracts() -> None:
         if cf.from_character:
             update_char_contracts.delay(cf.from_character.character_id)
         elif cf.from_corporation:
-            corp_contract_update.delay(cf.from_corporation.corporation_id)
+            corp_contract_update(cf.from_corporation.corporation_id)
+    for mc in MonitoredCharacter.objects.all():
+        update_char_contracts.delay(mc.character.character_id)
 
 @shared_task
 def discover_new_contracts(hours: int = 24) -> None:
@@ -166,6 +168,7 @@ def send_webhook_notification(monitor: MonitoredContract) -> None:
     """
     contract = monitor.contract
     webhook = monitor.triggered_filter.webhook
+    content = None
     if monitor.triggered_filter.ping_id:
         if monitor.triggered_filter.role_ping:
             content = f"<@&{monitor.triggered_filter.ping_id}>"

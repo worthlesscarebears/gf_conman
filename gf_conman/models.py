@@ -160,3 +160,14 @@ class MonitoredContract(models.Model):
     )
     last_status = models.CharField(max_length=25)
 
+class MonitoredCharacter(models.Model):
+    """Tracks a character that is being monitored for contract activity."""
+
+    class Meta:
+        default_permissions = ()
+
+    character = models.ForeignKey(
+        EveCharacter,
+        on_delete=models.CASCADE,
+        related_name="monitored_by",
+    )
