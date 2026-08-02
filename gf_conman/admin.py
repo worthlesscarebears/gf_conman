@@ -3,7 +3,7 @@
 # Django
 from django.contrib import admin  # noqa: F401
 
-from gf_conman.models import ContractFilter, MonitoredContract, Webhook
+from gf_conman.models import ContractFilter, MonitoredCharacter, MonitoredContract, Webhook
 
 # Register your models here.
 @admin.register(ContractFilter)
@@ -21,3 +21,8 @@ class MonitoredContractAdmin(admin.ModelAdmin):
 class WebhookAdmin(admin.ModelAdmin):
     """  """
     list_display = ["description", "username", "url"]
+
+@admin.register(MonitoredCharacter)
+class MonitoredCharacterAdmin(admin.ModelAdmin):
+    """  """
+    list_display = ["character"]
