@@ -103,8 +103,11 @@ def check_monitored_contracts() -> None:
                                 content=f"Contract {entry.contract.contract_id} completed, but no matching ForSale item found for type {x.type_name.name}.",
                             )
                             continue
-
-                    detected_user = get_user_from_evecharacter(EveCharacter.objects.get(character_id=entry.contract.acceptor_id))
+                    _evechr = EveCharacter.objects.get_character_by_id(character_id=entry.contract.acceptor_id)
+                    if _evechr is None:
+                        logger.warning(f"Contract {entry.contract.contract_id} completed, but acceptor {entry.contract.acceptor_name} is not known to us.")
+                        _evechr = EveCharacter.objects.create_character(entry.contract.issuer_id)
+                    detected_user = get_user_from_evecharacter(_evechr)
                     if detected_user is get_sentinel_user():
                         logger.warning(f"Contract {entry.contract.contract_id} completed, but acceptor {entry.contract.acceptor_name} is not linked to an Alliance Auth user.")
                         send_update_to_webhook.delay(
