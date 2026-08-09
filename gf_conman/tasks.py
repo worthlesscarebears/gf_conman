@@ -12,11 +12,15 @@ from discord import Color, Embed
 
 # Django
 from celery import shared_task
+from django.contrib.auth.models import User
 from django.utils import timezone
 
 # Alliance Auth
-from allianceauth.framework.api.evecharacter import get_user_from_evecharacter, get_sentinel_user
 from allianceauth.eveonline.models import EveCharacter
+from allianceauth.framework.api.evecharacter import (
+    get_sentinel_user,
+    get_user_from_evecharacter,
+)
 
 # Alliance Auth (External Libs)
 from corptools.models.contracts import Contract, ContractItem
@@ -109,12 +113,12 @@ def check_monitored_contracts() -> None:
                         _evechr = EveCharacter.objects.create_character(entry.contract.acceptor_id)
                     detected_user = get_user_from_evecharacter(_evechr)
                     if detected_user is get_sentinel_user():
+                        detected_user = User.objects.first()
                         logger.warning(f"Contract {entry.contract.contract_id} completed, but acceptor {entry.contract.acceptor_name} is not linked to an Alliance Auth user.")
                         send_update_to_webhook.delay(
                             webhook=entry.triggered_filter.webhook.url,
                             content=f"Contract {entry.contract.contract_id} completed, but acceptor {entry.contract.acceptor_name} is not linked to an Alliance Auth user.",
                         )
-                        detected_user = get_user_from_evecharacter(EveCharacter.objects.get(character_id=entry.contract.issuer_id))
 
                     o = forge_models.Order.objects.create(
                         user=detected_user,
