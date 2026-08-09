@@ -12,10 +12,10 @@ from discord import Color, Embed
 
 # Django
 from celery import shared_task
-from django.contrib.auth.models import User
 from django.utils import timezone
 
 # Alliance Auth
+from allianceauth.authentication.models import User
 from allianceauth.eveonline.models import EveCharacter
 from allianceauth.framework.api.evecharacter import (
     get_sentinel_user,
@@ -110,7 +110,6 @@ def check_monitored_contracts() -> None:
                     _evechr = EveCharacter.objects.get_character_by_id(character_id=entry.contract.acceptor_id)
                     if _evechr is None:
                         logger.warning(f"Contract {entry.contract.contract_id} completed, but acceptor {entry.contract.acceptor_name} is not known to us.")
-                        _evechr = EveCharacter.objects.create_character(entry.contract.acceptor_id)
                         detected_user = User.objects.first()
                     else:
                         detected_user = get_user_from_evecharacter(_evechr)
