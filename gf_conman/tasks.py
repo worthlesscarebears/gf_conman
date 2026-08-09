@@ -111,14 +111,16 @@ def check_monitored_contracts() -> None:
                     if _evechr is None:
                         logger.warning(f"Contract {entry.contract.contract_id} completed, but acceptor {entry.contract.acceptor_name} is not known to us.")
                         _evechr = EveCharacter.objects.create_character(entry.contract.acceptor_id)
-                    detected_user = get_user_from_evecharacter(_evechr)
-                    if detected_user is get_sentinel_user():
                         detected_user = User.objects.first()
+                    else:
+                        detected_user = get_user_from_evecharacter(_evechr)
+                    if detected_user is get_sentinel_user():
                         logger.warning(f"Contract {entry.contract.contract_id} completed, but acceptor {entry.contract.acceptor_name} is not linked to an Alliance Auth user.")
                         send_update_to_webhook.delay(
                             webhook=entry.triggered_filter.webhook.url,
                             content=f"Contract {entry.contract.contract_id} completed, but acceptor {entry.contract.acceptor_name} is not linked to an Alliance Auth user.",
                         )
+                        detected_user = User.objects.first()
 
                     o = forge_models.Order.objects.create(
                         user=detected_user,
