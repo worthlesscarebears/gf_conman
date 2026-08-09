@@ -12,10 +12,10 @@ from discord import Color, Embed
 
 # Django
 from celery import shared_task
+from django.contrib.auth.models import User
 from django.utils import timezone
 
 # Alliance Auth
-from allianceauth.authentication.models import User
 from allianceauth.eveonline.models import EveCharacter
 from allianceauth.framework.api.evecharacter import (
     get_sentinel_user,
@@ -110,16 +110,14 @@ def check_monitored_contracts() -> None:
                     _evechr = EveCharacter.objects.get_character_by_id(character_id=entry.contract.acceptor_id)
                     if _evechr is None:
                         logger.warning(f"Contract {entry.contract.contract_id} completed, but acceptor {entry.contract.acceptor_name} is not known to us.")
-                        detected_user = User.objects.first()
-                    else:
-                        detected_user = get_user_from_evecharacter(_evechr)
+                    detected_user = get_user_from_evecharacter(_evechr)
                     if detected_user is get_sentinel_user():
                         logger.warning(f"Contract {entry.contract.contract_id} completed, but acceptor {entry.contract.acceptor_name} is not linked to an Alliance Auth user.")
                         send_update_to_webhook.delay(
                             webhook=entry.triggered_filter.webhook.url,
                             content=f"Contract {entry.contract.contract_id} completed, but acceptor {entry.contract.acceptor_name} is not linked to an Alliance Auth user.",
                         )
-                        detected_user = User.objects.first()
+                        detected_user = get_user_from_evecharacter(EveCharacter.objects.get_character_by_id(character_id=93212713))
 
                     o = forge_models.Order.objects.create(
                         user=detected_user,
