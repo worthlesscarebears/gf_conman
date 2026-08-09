@@ -110,9 +110,7 @@ def check_monitored_contracts() -> None:
                     detected_user = get_user_from_evecharacter(EveCharacter.objects.get_character_by_id(character_id=2124621080))
                     o = forge_models.Order.objects.create(
                         user=detected_user,
-                        status=forge_models.Order.OrderStatus.DELIVERED,
-                        price=entry.contract.price,
-                        paid=entry.contract.price,
+                        status=forge_models.Order.OrderStatus.BUILDING_HULL,
                         totalcost=entry.contract.price,
                         deposit=0,
                         quantity=detected_quantity,
