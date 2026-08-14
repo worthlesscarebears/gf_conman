@@ -100,13 +100,16 @@ def check_monitored_contracts() -> None:
                                 detected_quantity = x.quantity
                                 break
 
-                        if not detected_item:
+                        if detected_item == None:
                             logger.warning(f"Contract {entry.contract.contract_id} completed, but no matching ForSale item found for type {x.type_name.name}.")
                             send_update_to_webhook.delay(
                                 webhook=entry.triggered_filter.webhook.url,
                                 content=f"Contract {entry.contract.contract_id} completed, but no matching ForSale item found for type {x.type_name.name}.",
                             )
+                            if current_status in TERMINAL_STATUSES:        
+                                entry.delete()
                             continue
+                        
                     detected_user = get_user_from_evecharacter(EveCharacter.objects.get_character_by_id(character_id=2124621080))
                     o = forge_models.Order.objects.create(
                         user=detected_user,
