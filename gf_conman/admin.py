@@ -16,6 +16,7 @@ class ContractFilterAdmin(admin.ModelAdmin):
 class MonitoredContractAdmin(admin.ModelAdmin):
     """  """
     list_display = ["contract", "triggered_filter", "last_status"]
+    exclude = ["contract"]
 
 @admin.register(Webhook)
 class WebhookAdmin(admin.ModelAdmin):

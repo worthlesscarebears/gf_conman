@@ -195,22 +195,22 @@ def send_webhook_notification(monitor: MonitoredContract) -> None:
             title = f"Contract cancelled"
             status = "Cancelled"
             colour = Color.red()
-            datestamp = int(contract.date_completed.timestamp())
+            datestamp = int(contract.date_expired.timestamp())
         case "rejected":
             title = f"Contract rejected"
             status = "Rejected"
             colour = Color.dark_red()
-            datestamp = int(contract.date_completed.timestamp())
+            datestamp = int(contract.date_expired.timestamp())
         case "deleted":
             title = f"Contract deleted"
             status = "Deleted"
             colour = Color.dark_grey()
-            datestamp = int(contract.date_completed.timestamp())
+            datestamp = int(contract.date_expired.timestamp())
         case "reversed":
             title = f"Contract reversed"
             status = "Reversed"
             colour = Color.purple()
-            datestamp = int(contract.date_completed.timestamp())
+            datestamp = int(contract.date_expired.timestamp())
     
     embed = Embed(
         title=f"{title}",
