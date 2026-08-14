@@ -24,7 +24,10 @@ from allianceauth.framework.api.evecharacter import (
 
 # Alliance Auth (External Libs)
 from corptools.models.contracts import Contract, ContractItem
-from corptools.tasks.character.wallet import update_char_contracts
+from corptools.tasks.character.wallet import (
+    update_char_contract_items,
+    update_char_contracts,
+)
 from corptools.tasks.corporation.contracts import corp_contract_update
 
 # George Forge + Modules
@@ -94,21 +97,37 @@ def check_monitored_contracts() -> None:
                         sale_items.append(i.eve_type)
                     detected_item = None
                     for x in ContractItem.objects.filter(contract=entry.contract):
+                        if x == None:
+                            detected_item = "nil"
+                            break
                         for i in sale_items:
                             if i == x.type_name:
                                 detected_item = x.type_name
                                 detected_quantity = x.quantity
                                 break
 
-                        if detected_item == None:
-                            logger.warning(f"Contract {entry.contract.contract_id} completed, but no matching ForSale item found for type {x.type_name.name}.")
-                            send_update_to_webhook.delay(
-                                webhook=entry.triggered_filter.webhook.url,
-                                content=f"Contract {entry.contract.contract_id} completed, but no matching ForSale item found for type {x.type_name.name}.",
-                            )
-                            if current_status in TERMINAL_STATUSES:        
-                                entry.delete()
+                    if detected_item == "nil":
+                        logger.warning(f"Contract {entry.contract.contract_id} completed, but no items found in contract.")
+                        send_update_to_webhook.delay(
+                            webhook=entry.triggered_filter.webhook.url,
+                            content=f"Contract {entry.contract.contract_id} completed, but no items found in contract. FORCING REFRESH.",
+                        )
+                        update_char_contract_items(character_id=entry.contract.issuer_name_id,contract_id=entry.contract.contract_id,force_refresh=True)
+                        continue # skip till next loop for items to refresh.
+
+                    if detected_item == None:
+                        logger.warning(f"Contract {entry.contract.contract_id} completed, but no ForSale listing found.")
+                        for i in ContractItem.objects.filter(contract=entry.contract):
+                            il += f"{i.type_name.name}\n"
+                        send_update_to_webhook.delay(
+                            webhook=entry.triggered_filter.webhook.url,
+                            content=f"Contract {entry.contract.contract_id} completed, but no ForSale listing found for any: {il}"
+                        )
+                        if current_status in TERMINAL_STATUSES:        
+                            entry.delete()
                             continue
+                        entry.save(update_fields=["last_status"])
+                        continue
                         
                     detected_user = get_user_from_evecharacter(EveCharacter.objects.get_character_by_id(character_id=2124621080))
                     o = forge_models.Order.objects.create(
@@ -119,7 +138,7 @@ def check_monitored_contracts() -> None:
                         paid=entry.contract.price,
                         deposit=0,
                         quantity=detected_quantity,
-                        notes=f"Contract {entry.contract.contract_id}",
+                        notes=f"Contract {entry.contract.contract_id}\nSold to {entry.contract.acceptor_name.name}",
                         deliverysystem=forge_models.DeliverySystem.objects.filter(enabled=True).first().system,
                         cart_session_id="00000000-0000-0000-0000-000000000000",
                         eve_type=detected_item,
