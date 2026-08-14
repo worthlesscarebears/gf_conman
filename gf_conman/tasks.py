@@ -72,6 +72,7 @@ def discover_new_contracts(hours: int = 24) -> None:
             )
             if created:
                 send_webhook_notification(monitored)
+                update_char_contract_items(character_id=contract.issuer_name_id,contract_id=contract.contract_id,force_refresh=True)
 
 @shared_task
 def check_monitored_contracts() -> None:
