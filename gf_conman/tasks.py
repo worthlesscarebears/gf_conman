@@ -204,7 +204,7 @@ def send_webhook_notification(monitor: MonitoredContract) -> None:
         case "deleted":
             title = f"Contract deleted"
             status = "Deleted"
-            colour = Color.black()
+            colour = Color.dark_grey()
             datestamp = int(contract.date_completed.timestamp())
         case "reversed":
             title = f"Contract reversed"
