@@ -112,6 +112,8 @@ def check_monitored_contracts() -> None:
                         user=detected_user,
                         status=forge_models.Order.OrderStatus.BUILDING_HULL,
                         totalcost=entry.contract.price,
+                        price=entry.contract.price,
+                        paid=entry.contract.price,
                         deposit=0,
                         quantity=detected_quantity,
                         notes=f"Contract {entry.contract.contract_id}",
