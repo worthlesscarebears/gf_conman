@@ -97,17 +97,7 @@ def check_monitored_contracts() -> None:
                     for i in forge_models.ForSale.objects.all().order_by("-price"):
                         sale_items.append(i.eve_type)
                     detected_item = None
-                    for x in ContractItem.objects.filter(contract=entry.contract):
-                        if x == None:
-                            detected_item = "nil"
-                            break
-                        for i in sale_items:
-                            if i == x.type_name:
-                                detected_item = x.type_name
-                                detected_quantity = x.quantity
-                                break
-
-                    if detected_item == "nil":
+                    if ContractItem.objects.filter(contract=entry.contract).count() == 0:
                         logger.warning(f"Contract {entry.contract.contract_id} completed, but no items found in contract.")
                         send_update_to_webhook.delay(
                             webhook=entry.triggered_filter.webhook.url,
@@ -115,11 +105,19 @@ def check_monitored_contracts() -> None:
                         )
                         update_char_contract_items(character_id=entry.contract.issuer_name_id,contract_id=entry.contract.contract_id,force_refresh=True)
                         continue # skip till next loop for items to refresh.
+                    else:
+                        for x in ContractItem.objects.filter(contract=entry.contract):
+                            for i in sale_items:
+                                if i == x.type_name:
+                                    detected_item = x.type_name
+                                    detected_quantity = x.quantity
+                                    break
 
                     if detected_item == None:
                         logger.warning(f"Contract {entry.contract.contract_id} completed, but no ForSale listing found.")
-                        for i in ContractItem.objects.filter(contract=entry.contract):
-                            il += f"{i.type_name.name}\n"
+                        il = ""
+                        for j in ContractItem.objects.filter(contract=entry.contract):
+                            il += f"{j.type_name.name}\n"
                         send_update_to_webhook.delay(
                             webhook=entry.triggered_filter.webhook.url,
                             content=f"Contract {entry.contract.contract_id} completed, but no ForSale listing found for any: {il}"
