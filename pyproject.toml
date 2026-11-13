@@ -38,7 +38,7 @@ dependencies = [
     "allianceauth-invoices>=0.1.7",
     "allianceauth-georgeforge>=0.6.3",
     "py-cord<3,>=2",
-    "django-eveonline-sde>=0.0.1a1,<1",
+    "django-eveonline-sde>=1,<2",
 ]
 
 dev = [
